@@ -19,18 +19,25 @@ ARG DEV=false
 # this will override in requirements.dev.txt to the true
 RUN python -m venv /py && \
     /py/bin/pip install --upgrade pip && \
+    apk add --update --no-cache postgresql-client && \
+    apk add --update --no-cache --virtual .tmp-build-deps \
+        build-base postgresql-dev musl-dev && \
     /py/bin/pip install -r /tmp/requirements.txt && \
     if [ $DEV = 'true' ]; \
         then /py/bin/pip install -r /tmp/requirements.dev.txt ; \
     fi && \
     rm -rf /tmp && \
+    apk del .tmp-build-deps && \
     adduser \
         --disabled-password \
         --no-create-home \
         hameddjf
 # run in alpine image include (
-#     6= remove /tmp directory = to not depend on the image
-#     7= create new user in docker image with no password and no directory home / in the last is name of user (we dont want use the root user - dont use root user)
+#     22= add apk and install postgresql
+#     23= set the virtual dependency packege
+#     30= remove the temp build deps (in line 24)  
+#     29= remove /tmp directory = to not depend on the image
+#     31= create new user in docker image with no password and no directory home / in the last is name of user (we dont want use the root user - dont use root user)
 # )
 ENV PATH="/py/bin:$PATH"
 # update the environment variable inside the image and we updating the path environment variable / define all of the directories where executables can be run
